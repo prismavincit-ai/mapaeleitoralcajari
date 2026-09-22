@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa Interativo - Eleição Cajari</title>
+  <style>
+    :root {
+      --bg: #f5f6f0;
+      --panel: #ffffff;
+      --map: #e8ece4;
+      --text: #202124;
+      --muted: #626960;
+      --line: #d9ded6;
+      --accent: #0f6b5f;
+      --water: #1d74a6;
+      --road: #d48228;
+      --section: #7454b8;
+      --polling: #b7484b;
+      --shadow: 0 14px 32px rgba(31, 38, 35, .14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font: 15px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 22px;
+      max-height: 100vh;
+      overflow: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    main {
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+      background: var(--map);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 650;
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfa;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1.1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .search {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="search"] {
+      width: 100%;
+      min-width: 0;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: #fff;
+      font: inherit;
+    }
+
+    button {
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button:hover { border-color: var(--accent); }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 18px;
+      height: 4px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .swatch.point {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .symbol-scale {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .symbol-scale i {
+      display: inline-block;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--polling);
+    }
+
+    .symbol-scale .small { width: 7px; height: 7px; }
+    .symbol-scale .medium { width: 13px; height: 13px; }
+    .symbol-scale .large { width: 20px; height: 20px; }
+
+    .polling-menu {
+      display: grid;
+      gap: 8px;
+      max-height: 39vh;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .menu-help { margin: -4px 0 9px; font-size: 12px; }
+
+    .polling-item {
+      width: 100%;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+      padding: 10px 13px;
+      border-color: #d3e1d8;
+      border-radius: 10px;
+      text-align: left;
+      background: #fff;
+    }
+
+    .polling-item:hover { background: #edf7f0; }
+    .polling-item strong { color: #153f37; font-size: 13px; line-height: 1.3; }
+    .menu-symbol {
+      width: var(--symbol-size);
+      height: var(--symbol-size);
+      min-width: var(--symbol-size);
+      border-radius: 50%;
+      background: #b7484b;
+    }
+
+    .results {
+      max-height: 28vh;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .result {
+      width: 100%;
+      height: auto;
+      padding: 10px 12px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      text-align: left;
+      background: #fff;
+    }
+
+    .result:last-child { border-bottom: 0; }
+    .result strong { display: block; font-weight: 650; }
+    .result small { display: block; margin-top: 2px; color: var(--muted); }
+
+    .empty {
+      padding: 12px;
+      color: var(--muted);
+    }
+
+    #mapWrap {
+      position: absolute;
+      inset: 0;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    #mapWrap.dragging { cursor: grabbing; }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(rgba(255,255,255,.55) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.55) 1px, transparent 1px),
+        var(--map);
+      background-size: 64px 64px;
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 4;
+      display: grid;
+      gap: 8px;
+    }
+
+    .map-controls button {
+      width: 42px;
+      padding: 0;
+      font-size: 20px;
+      font-weight: 650;
+      box-shadow: 0 8px 22px rgba(34, 40, 36, .16);
+    }
+
+    .scale {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      z-index: 4;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .92);
+      font-size: 12px;
+    }
+
+    .popup {
+      position: absolute;
+      z-index: 6;
+      display: none;
+      width: min(330px, calc(100vw - 36px));
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .popup.is-open { display: block; }
+
+    .hover-tooltip {
+      position: absolute;
+      z-index: 7;
+      display: none;
+      width: min(300px, calc(100vw - 32px));
+      padding: 12px 14px;
+      border: 1px solid #c9d9d0;
+      border-radius: 10px;
+      color: #183f37;
+      background: rgba(255, 255, 255, .97);
+      box-shadow: 0 10px 28px rgba(24, 63, 55, .18);
+      font-size: 12px;
+      line-height: 1.4;
+      pointer-events: none;
+    }
+
+    .hover-tooltip.is-open { display: block; }
+    .hover-tooltip strong { display: block; margin-bottom: 5px; font-size: 13px; }
+    .hover-tooltip span { display: block; margin-top: 2px; color: #526c64; }
+    .hover-tooltip b { color: #174f43; }
+
+    .popup header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .popup button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+
+    .popup table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .popup th,
+    .popup td {
+      padding: 4px 0;
+      border-bottom: 1px solid #ecefeb;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .popup th {
+      width: 38%;
+      padding-right: 12px;
+      color: var(--muted);
+      font-weight: 550;
+    }
+
+    .feature-path {
+      vector-effect: non-scaling-stroke;
+      cursor: pointer;
+    }
+
+    .point {
+      vector-effect: non-scaling-stroke;
+      cursor: pointer;
+    }
+
+    .point.is-selected { fill: #ff0000 !important; }
+    .point.is-preview { stroke: #fff; stroke-width: 2px; }
+
+    .map-label {
+      fill: #3f4a47;
+      paint-order: stroke;
+      pointer-events: none;
+      stroke: #fff;
+      stroke-linejoin: round;
+      font-weight: 550;
+    }
+
+    .map-label.voter-label { font-weight: 650; }
+
+    @media (max-width: 820px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 68vh;
+      }
+
+      aside {
+        max-height: 48vh;
+        overflow: auto;
+        padding: 16px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      main { min-height: 68vh; }
+      .map-controls { top: 10px; right: 10px; }
+    }
+
+    /* Geoportal layout */
+    body { background: #f3f7f2; }
+
+    .topbar {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 28px;
+      border-bottom: 1px solid #dce6df;
+      background: rgba(255, 255, 255, .96);
+    }
+
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      color: #fff;
+      background: #12725f;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .brand-copy { display: grid; gap: 1px; }
+    .brand-copy small, .eyebrow {
+      color: #13705d;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.25px;
+    }
+
+    .brand-copy strong { color: #153e36; font-size: 19px; }
+    .topbar-context { color: #586c66; font-size: 14px; }
+    .topbar-context strong { color: #1c5045; }
+
+    .app { min-height: calc(100vh - 70px); grid-template-columns: 390px minmax(0, 1fr); }
+    aside {
+      gap: 16px;
+      padding: 24px;
+      background: #f6faf6;
+      border-right: 1px solid #d9e4dc;
+      box-shadow: none;
+    }
+
+    aside > section:first-child {
+      padding: 18px;
+      border: 1px solid #d6e4db;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #ffffff 0%, #edf7f0 100%);
+    }
+
+    h1 { color: #133f36; font-size: 25px; }
+    h2 { color: #173f37; }
+    .intro-copy { margin-top: 9px; line-height: 1.55; }
+    .summary { gap: 10px; }
+    .metric { padding: 11px 9px; border-color: #d8e3db; background: #fff; }
+    .metric strong { color: #126b59; }
+    .search input { border-color: #cfddd4; }
+    .legend { padding: 12px; border: 1px solid #d8e5dd; border-radius: 12px; background: #fff; }
+    .polling-menu { max-height: 39vh; }
+    .results { border-color: #d3e1d8; border-radius: 12px; }
+
+    main { background: #fff; }
+    svg {
+      background: #fff;
+    }
+
+    .map-controls {
+      top: 18px;
+      left: 26px;
+      right: auto;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px;
+      border: 1px solid rgba(211, 225, 216, .9);
+      border-radius: 16px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 8px 24px rgba(23, 69, 55, .14);
+    }
+
+    .map-controls button { width: auto; height: 38px; font-size: 14px; box-shadow: none; }
+    .map-controls .zoom { width: 38px; padding: 0; font-size: 20px; }
+    .map-controls .fit { border-color: #0f6b5f; color: #fff; background: #0f6b5f; font-weight: 650; }
+    .opacity-control { display: flex; align-items: center; gap: 8px; padding: 0 7px; color: #45635a; font-size: 12px; font-weight: 650; }
+    .opacity-control input { width: 82px; accent-color: #0f6b5f; }
+    .scale { left: auto; right: 18px; bottom: 18px; border-radius: 9px; }
+
+    @media (max-width: 820px) {
+      .topbar { height: auto; min-height: 64px; padding: 10px 16px; }
+      .topbar-context { display: none; }
+      .app { min-height: calc(100vh - 64px); }
+      .map-controls { top: 12px; left: 12px; max-width: calc(100% - 24px); flex-wrap: wrap; }
+      .opacity-control { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">GC</div>
+      <div class="brand-copy"><small>GEOPORTAL MUNICIPAL</small><strong>GeoCajari</strong></div>
+    </div>
+    <div class="topbar-context"><strong>Cajari, Maranhão</strong>&nbsp;&nbsp; Informações eleitorais territoriais</div>
+  </header>
+  <div class="app">
+    <aside>
+      <section>
+        <div class="eyebrow">EXPLORE CAJARI</div>
+        <h1>Mapa eleitoral de Cajari</h1>
+        <p class="intro-copy">Distribuição territorial dos locais de votação e do eleitorado do município.</p>
+      </section>
+
+      <section class="summary" aria-label="Resumo">
+        <div class="metric"><strong id="pollingTotal">-</strong><span>locais</span></div>
+        <div class="metric"><strong id="sectionTotal">-</strong><span>seções</span></div>
+        <div class="metric"><strong id="voterTotal">-</strong><span>eleitorado</span></div>
+      </section>
+
+      <section>
+        <h2>Buscar local ou seção</h2>
+        <div class="search">
+          <input id="searchInput" type="search" placeholder="Nome, seção, código ou localidade" autocomplete="off">
+          <button id="clearSearch" type="button">Limpar</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Referências</h2>
+        <div class="legend">
+          <span style="color: #6c6c6c"><i class="swatch"></i>Limite municipal</span>
+          <span style="color: #e07b48"><i class="swatch"></i>Vias de acesso</span>
+          <span style="color: #73b9df"><i class="swatch"></i>Hidrografia</span>
+          <span style="color: #b7484b"><i class="swatch point"></i>Local de votação</span>
+        </div>
+        <div class="symbol-scale" aria-label="Tamanho do símbolo proporcional ao eleitorado">
+          <span>Tamanho do símbolo = eleitorado</span><i class="small"></i><i class="medium"></i><i class="large"></i>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow">DADOS ELEITORAIS</div>
+        <h2>Locais de Votação</h2>
+        <p class="menu-help">Aponte um local para visualizá-lo no mapa.</p>
+        <div id="pollingLegend" class="polling-menu" aria-live="polite"></div>
+      </section>
+
+      <button id="fitMap" type="button" class="primary">Ajustar ao município</button>
+    </aside>
+    <main>
+      <div id="mapWrap">
+        <svg id="mapSvg" role="img" aria-label="Mapa de Cajari com camadas eleitorais">
+          <g id="viewport"></g>
+          <g id="labelLayer"></g>
+        </svg>
+      </div>
+      <div class="map-controls" aria-label="Controles do mapa">
+        <button id="zoomIn" class="zoom" type="button" aria-label="Aproximar">+</button>
+        <button id="zoomOut" class="zoom" type="button" aria-label="Afastar">−</button>
+        <button id="fitMapTop" class="fit" type="button">Enquadrar</button>
+        <label class="opacity-control">Opacidade <input id="opacity" type="range" min="30" max="100" value="100"></label>
+      </div>
+      <div id="scaleInfo" class="scale">Zoom 1x</div>
+      <div id="popup" class="popup" role="dialog" aria-live="polite"></div>
+      <div id="hoverTooltip" class="hover-tooltip" role="tooltip"></div>
+    </main>
+  </div>
+
+  <script src="map-data.js"></script>
+  <script>
+    const categoryStyle = {
+      boundary: { stroke: '#6c6c6c', width: 1, fill: '#faf7ea' },
+      road: { stroke: '#e07b48', width: 1.1, fill: 'none' },
+      water: { stroke: '#9bcde5', width: 1, fill: '#cdeafa' },
+      polling: { stroke: 'none', width: 0, fill: '#b7484b', radius: 7 },
+      polling_alt: { stroke: '#ffffff', width: 1, fill: 'rgba(179,38,30,.35)', radius: 4 },
+      section: { stroke: '#ffffff', width: 1.4, fill: '#7454b8', radius: 4.5 }
+    };
+
+    const defaultVisible = new Set([
+      'Cajari',
+      'MA-014',
+      'MA-317',
+      'Estradas',
+      "Massas d'agua",
+      'Rio Maracu',
+      'Rio Pindare',
+      'Locais de votacao'
+    ]);
+
+    const svg = document.getElementById('mapSvg');
+    const viewport = document.getElementById('viewport');
+    const labelLayer = document.getElementById('labelLayer');
+    const mapWrap = document.getElementById('mapWrap');
+    const pollingLegend = document.getElementById('pollingLegend');
+    const searchInput = document.getElementById('searchInput');
+    const popup = document.getElementById('popup');
+    const hoverTooltip = document.getElementById('hoverTooltip');
+    const scaleInfo = document.getElementById('scaleInfo');
+
+    const layersByName = new Map();
+    const searchable = [];
+    const localityFromCopy = new Map();
+    const localityCorrections = new Map([
+      ['1333', 'POVOADO SÃO JOSÉ'],
+      ['1341', 'POVOADO SÃO MIGUEL DOS CORREIAS']
+    ]);
+    let allBounds = null;
+    let cajariBounds = null;
+    let baseViewBox = [0, 0, 1000, 700];
+    let view = { x: 0, y: 0, w: 1000, h: 700 };
+    let dragging = null;
+    let selectedItem = null;
+    let previewedItem = null;
+
+    function clean(value) {
+      return value === null || value === undefined || value === '' || value === '#NULO' || value === -1 ? '' : String(value);
+    }
+
+    function firstValue(props, keys) {
+      for (const key of keys) {
+        const value = clean(props[key]);
+        if (value) return value;
+      }
+      return '';
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[char]));
+    }
+
+    function titleFor(feature, layerName) {
+      const p = feature.properties || {};
+      return firstValue(p, ['nome_local', 'NM_LOCAL_VOTACAO', 'name', 'ref', 'NM_MUNICIPIO']) || layerName;
+    }
+
+    function localityFor(props) {
+      const code = clean(props.cod_local);
+      return localityCorrections.get(code) || localityFromCopy.get(code) || firstValue(props, ['localidade', 'NM_BAIRRO']);
+    }
+
+    function popupRows(feature, layerName) {
+      const p = feature.properties || {};
+      return [
+        ['Local', firstValue(p, ['nome_local', 'NM_LOCAL_VOTACAO', 'NM_LOCAL_VOTACAO_ORIGINAL'])],
+        ['Código', firstValue(p, ['cod_local', 'NR_LOCAL_VOTACAO'])],
+        ['Quantidade de seções', firstValue(p, ['qtd_secoes'])],
+        ['Seções', firstValue(p, ['secoes', 'NR_SECAO'])],
+        ['Eleitores', firstValue(p, ['eleitores', 'QT_ELEITOR_SECAO'])],
+        ['Localidade', localityFor(p)],
+        ['Endereço', firstValue(p, ['DS_ENDERECO', 'DS_ENDERECO_LOCVT_ORIGINAL'])],
+        ['Rodovia', firstValue(p, ['ref', 'name'])],
+        ['Tipo', firstValue(p, ['highway', 'surface', 'DS_SITU_SECAO'])],
+        ['Camada', layerName]
+      ].filter(([, value]) => value);
+    }
+
+    function coordBounds(coords, bounds = [Infinity, Infinity, -Infinity, -Infinity]) {
+      if (Array.isArray(coords) && typeof coords[0] === 'number') {
+        bounds[0] = Math.min(bounds[0], coords[0]);
+        bounds[1] = Math.min(bounds[1], coords[1]);
+        bounds[2] = Math.max(bounds[2], coords[0]);
+        bounds[3] = Math.max(bounds[3], coords[1]);
+      } else if (Array.isArray(coords)) {
+        coords.forEach(part => coordBounds(part, bounds));
+      }
+      return bounds;
+    }
+
+    function featureBounds(feature) {
+      const geom = feature.geometry || {};
+      if (geom.type === 'GeometryCollection') {
+        return geom.geometries.reduce((bounds, g) => coordBounds(g.coordinates, bounds), [Infinity, Infinity, -Infinity, -Infinity]);
+      }
+      return coordBounds(geom.coordinates);
+    }
+
+    function mergeBounds(a, b) {
+      if (!a) return b;
+      return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])];
+    }
+
+    function fit(bounds, paddingRatio = 0.08) {
+      const width = Math.max(1, svg.clientWidth);
+      const height = Math.max(1, svg.clientHeight);
+      const lonSpan = bounds[2] - bounds[0];
+      const latSpan = bounds[3] - bounds[1];
+      const padLon = lonSpan * paddingRatio;
+      const padLat = latSpan * paddingRatio;
+      const padded = [bounds[0] - padLon, bounds[1] - padLat, bounds[2] + padLon, bounds[3] + padLat];
+      const scale = Math.min(width / (padded[2] - padded[0]), height / (padded[3] - padded[1]));
+      const worldW = width / scale;
+      const worldH = height / scale;
+      const centerLon = (padded[0] + padded[2]) / 2;
+      const centerLat = (padded[1] + padded[3]) / 2;
+      view = { x: centerLon - worldW / 2, y: -centerLat - worldH / 2, w: worldW, h: worldH };
+      baseViewBox = [view.x, view.y, view.w, view.h];
+      applyView();
+    }
+
+    function applyView() {
+      svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
+      const zoom = Math.max(0.1, baseViewBox[2] / view.w);
+      scaleInfo.textContent = `Zoom ${zoom.toFixed(1).replace('.', ',')}x`;
+      updatePointSizes();
+      positionPopup();
+    }
+
+    function updatePointSizes() {
+      const unitsPerPixel = view.w / Math.max(1, svg.clientWidth);
+      svg.querySelectorAll('circle.point').forEach(circle => {
+        const pixelRadius = Number(circle.dataset.radius || 5);
+        circle.setAttribute('r', Math.max(unitsPerPixel * pixelRadius, unitsPerPixel * 3));
+      });
+      positionLabels(unitsPerPixel);
+    }
+
+    function project(coord) {
+      return [coord[0], -coord[1]];
+    }
+
+    function pathForGeometry(geom) {
+      if (!geom) return '';
+      const drawLine = coords => coords.map((coord, index) => {
+        const [x, y] = project(coord);
+        return `${index ? 'L' : 'M'}${x},${y}`;
+      }).join(' ');
+      if (geom.type === 'LineString') return drawLine(geom.coordinates);
+      if (geom.type === 'MultiLineString') return geom.coordinates.map(drawLine).join(' ');
+      if (geom.type === 'Polygon') return geom.coordinates.map(ring => `${drawLine(ring)} Z`).join(' ');
+      if (geom.type === 'MultiPolygon') return geom.coordinates.flatMap(poly => poly.map(ring => `${drawLine(ring)} Z`)).join(' ');
+      if (geom.type === 'GeometryCollection') return geom.geometries.map(pathForGeometry).join(' ');
+      return '';
+    }
+
+    function centerForFeature(feature) {
+      const bounds = featureBounds(feature);
+      return [(bounds[0] + bounds[2]) / 2, -((bounds[1] + bounds[3]) / 2)];
+    }
+
+    function styleFor(spec) {
+      const base = { ...(categoryStyle[spec.category] || categoryStyle.road) };
+      if (spec.name === 'Cajari') return { ...base, stroke: '#6c6c6c', width: 1, fill: '#faf7ea' };
+      if (spec.name === 'BR-222') return { ...base, width: 1.5, stroke: '#cd4e4a' };
+      if (spec.name === 'MA-014') return { ...base, width: 1.4, stroke: '#e47747' };
+      if (spec.name === 'MA-317') return { ...base, width: 1.4, stroke: '#cf4e48' };
+      if (spec.name === 'Rio Maracu' || spec.name === 'Rio Pindare') return { ...base, width: 1.5, stroke: '#73b9df', fill: 'none' };
+      if (spec.name === "Massas d'agua") return { ...base, width: .8, stroke: '#a9d3e8', fill: '#cdeafa' };
+      return base;
+    }
+
+    function labelLocality(value) {
+      return clean(value)
+        .replace(/^POVOADO\s+/i, '')
+        .replace(/^CENTRO\s*-\s*/i, '')
+        .replace(/\s*-\s*ZONA\s+(RURAL|URBANA)\s*$/i, '')
+        .toLowerCase()
+        .replace(/(^|\s)\S/g, char => char.toUpperCase());
+    }
+
+    function positionLabels(unitsPerPixel) {
+      const occupied = [];
+      const labels = [...labelLayer.querySelectorAll('text.map-label')]
+        .sort((a, b) => Number(b.dataset.voters || 0) - Number(a.dataset.voters || 0));
+      const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+      for (const label of labels) {
+        const cx = Number(label.dataset.cx);
+        const cy = Number(label.dataset.cy);
+        const radius = Number(label.dataset.radius);
+        const width = Math.max(42, label.textContent.length * 5.4) * unitsPerPixel;
+        const height = 13 * unitsPerPixel;
+        const gap = (radius + 5) * unitsPerPixel;
+        const candidates = [
+          { x: cx + gap, y: cy + 4 * unitsPerPixel, anchor: 'start', box: () => ({ left: cx + gap, right: cx + gap + width, top: cy - 9 * unitsPerPixel, bottom: cy + 4 * unitsPerPixel }) },
+          { x: cx - gap, y: cy + 4 * unitsPerPixel, anchor: 'end', box: () => ({ left: cx - gap - width, right: cx - gap, top: cy - 9 * unitsPerPixel, bottom: cy + 4 * unitsPerPixel }) },
+          { x: cx, y: cy - gap, anchor: 'middle', box: () => ({ left: cx - width / 2, right: cx + width / 2, top: cy - gap - height, bottom: cy - gap + 3 * unitsPerPixel }) },
+          { x: cx, y: cy + gap + 9 * unitsPerPixel, anchor: 'middle', box: () => ({ left: cx - width / 2, right: cx + width / 2, top: cy + gap - 2 * unitsPerPixel, bottom: cy + gap + height }) }
+        ];
+        let choice = candidates.find(candidate => !occupied.some(box => overlaps(candidate.box(), box)));
+        if (!choice) {
+          choice = candidates.reduce((best, candidate) => {
+            const collisions = occupied.filter(box => overlaps(candidate.box(), box)).length;
+            return collisions < best.collisions ? { candidate, collisions } : best;
+          }, { candidate: candidates[0], collisions: Infinity }).candidate;
+        }
+        label.setAttribute('x', choice.x);
+        label.setAttribute('y', choice.y);
+        label.setAttribute('text-anchor', choice.anchor);
+        label.setAttribute('font-size', unitsPerPixel * 10);
+        label.setAttribute('stroke-width', unitsPerPixel * 3.5);
+        label.style.display = '';
+        occupied.push(choice.box());
+      }
+    }
+
+    function addPollingLabels(item) {
+      const p = item.feature.properties || {};
+      const voters = clean(p.eleitores);
+      const labelValues = [{
+        text: formatPollingLabel(p.localidade, voters),
+        position: 'side',
+        className: 'map-label locality-label'
+      }];
+      for (const value of labelValues) {
+        if (!value.text) continue;
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('class', value.className);
+        label.dataset.cx = item.center[0];
+        label.dataset.cy = item.center[1];
+        label.dataset.radius = item.element.dataset.radius;
+        label.dataset.position = value.position;
+        label.dataset.voters = voters;
+        label.dataset.locationCode = clean(p.cod_local);
+        label.dataset.locality = clean(p.localidade);
+        label.textContent = formatPollingLabel(label.dataset.locality, voters);
+        labelLayer.appendChild(label);
+      }
+    }
+
+    function formatPollingLabel(locality, voters) {
+      return [labelLocality(locality), voters ? Number(voters).toLocaleString('pt-BR') : ''].filter(Boolean).join(' | ');
+    }
+
+    function refreshPollingLabels() {
+      labelLayer.querySelectorAll('text.map-label').forEach(label => {
+        const locality = localityCorrections.get(label.dataset.locationCode) || localityFromCopy.get(label.dataset.locationCode) || label.dataset.locality;
+        label.textContent = formatPollingLabel(locality, label.dataset.voters);
+      });
+    }
+
+    function pointRadius(feature, spec) {
+      if (spec.category !== 'polling') return styleFor(spec).radius || 5;
+      const voters = Number((feature.properties || {}).eleitores) || 0;
+      // QGIS: size from 0 to 10 mm, scaled by the square root of eleitores.
+      const diameterPixels = 10 * 3.78 * Math.sqrt(Math.min(voters, 1847) / 1847);
+      return Math.max(3, diameterPixels / 2);
+    }
+
+    function setHoverTooltipContent(item) {
+      const p = item.feature.properties || {};
+      const details = item.spec.category === 'polling'
+        ? `<span><b>Localidade:</b> ${escapeHtml(localityFor(p))}</span>
+           <span><b>Quantidade de seções:</b> ${escapeHtml(firstValue(p, ['qtd_secoes']))}</span>
+           <span><b>Eleitores:</b> ${escapeHtml(firstValue(p, ['eleitores']))}</span>
+           <span><b>Seções:</b> ${escapeHtml(firstValue(p, ['secoes']))}</span>`
+        : `<span><b>Seção:</b> ${escapeHtml(firstValue(p, ['NR_SECAO', 'secoes']))}</span>
+           <span><b>Eleitores:</b> ${escapeHtml(firstValue(p, ['QT_ELEITOR_SECAO', 'eleitores']))}</span>`;
+      hoverTooltip.innerHTML = `<strong>${escapeHtml(titleFor(item.feature, item.spec.name))}</strong>${details}`;
+      hoverTooltip.classList.add('is-open');
+    }
+
+    function showHoverTooltip(item, event) {
+      setHoverTooltipContent(item);
+      moveHoverTooltip(event);
+    }
+
+    function showHoverTooltipAtItem(item) {
+      setHoverTooltipContent(item);
+      const point = item.center || centerForFeature(item.feature);
+      const screen = svgPointToScreen(point[0], point[1]);
+      moveHoverTooltip({ clientX: screen.x, clientY: screen.y });
+    }
+
+    function moveHoverTooltip(event) {
+      if (!hoverTooltip.classList.contains('is-open')) return;
+      const rect = mapWrap.getBoundingClientRect();
+      const tooltipRect = hoverTooltip.getBoundingClientRect();
+      let left = event.clientX - rect.left + 15;
+      let top = event.clientY - rect.top + 15;
+      if (left + tooltipRect.width > rect.width - 10) left = event.clientX - rect.left - tooltipRect.width - 15;
+      if (top + tooltipRect.height > rect.height - 10) top = event.clientY - rect.top - tooltipRect.height - 15;
+      hoverTooltip.style.left = `${Math.max(10, left)}px`;
+      hoverTooltip.style.top = `${Math.max(10, top)}px`;
+    }
+
+    function hideHoverTooltip() {
+      hoverTooltip.classList.remove('is-open');
+    }
+
+    function previewItem(item) {
+      if (previewedItem?.element) previewedItem.element.classList.remove('is-preview');
+      previewedItem = item;
+      if (item.element) item.element.classList.add('is-preview');
+      showHoverTooltipAtItem(item);
+    }
+
+    function clearPreview() {
+      if (previewedItem?.element) previewedItem.element.classList.remove('is-preview');
+      previewedItem = null;
+      hideHoverTooltip();
+    }
+
+    function showPopup(item) {
+      if (selectedItem && selectedItem.element) selectedItem.element.classList.remove('is-selected');
+      selectedItem = item;
+      if (item.element && item.spec.category === 'polling') item.element.classList.add('is-selected');
+      const rows = popupRows(item.feature, item.spec.name)
+        .map(([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(value)}</td></tr>`)
+        .join('');
+      popup.innerHTML = `<header><span>${escapeHtml(titleFor(item.feature, item.spec.name))}</span><button type="button" aria-label="Fechar">×</button></header><table>${rows}</table>`;
+      popup.querySelector('button').addEventListener('click', hidePopup);
+      popup.classList.add('is-open');
+      positionPopup();
+    }
+
+    function hidePopup() {
+      if (selectedItem && selectedItem.element) selectedItem.element.classList.remove('is-selected');
+      selectedItem = null;
+      popup.classList.remove('is-open');
+    }
+
+    function positionPopup() {
+      if (!selectedItem || !popup.classList.contains('is-open')) return;
+      const point = selectedItem.center || centerForFeature(selectedItem.feature);
+      const screen = svgPointToScreen(point[0], point[1]);
+      const wrapRect = mapWrap.getBoundingClientRect();
+      const popupRect = popup.getBoundingClientRect();
+      let left = screen.x - wrapRect.left + 14;
+      let top = screen.y - wrapRect.top - popupRect.height - 14;
+      if (left + popupRect.width > wrapRect.width - 12) left = wrapRect.width - popupRect.width - 12;
+      if (left < 12) left = 12;
+      if (top < 12) top = screen.y - wrapRect.top + 14;
+      popup.style.left = `${left}px`;
+      popup.style.top = `${top}px`;
+    }
+
+    function svgPointToScreen(x, y) {
+      const pt = svg.createSVGPoint();
+      pt.x = x;
+      pt.y = y;
+      return pt.matrixTransform(svg.getScreenCTM());
+    }
+
+    function zoomAt(multiplier, clientX, clientY) {
+      const rect = svg.getBoundingClientRect();
+      const px = (clientX - rect.left) / rect.width;
+      const py = (clientY - rect.top) / rect.height;
+      const wx = view.x + px * view.w;
+      const wy = view.y + py * view.h;
+      const nextW = Math.max(baseViewBox[2] / 80, Math.min(baseViewBox[2] * 5, view.w / multiplier));
+      const nextH = nextW * rect.height / rect.width;
+      view = { x: wx - px * nextW, y: wy - py * nextH, w: nextW, h: nextH };
+      applyView();
+    }
+
+    function addSearchable(feature, element, spec, center) {
+      if (!['polling', 'section'].includes(spec.category)) return;
+      const p = feature.properties || {};
+      const label = titleFor(feature, spec.name);
+      const detail = [
+        firstValue(p, ['localidade', 'NM_BAIRRO', 'DS_ENDERECO']),
+        firstValue(p, ['secoes', 'NR_SECAO']) ? `Seção ${firstValue(p, ['secoes', 'NR_SECAO'])}` : '',
+        firstValue(p, ['eleitores', 'QT_ELEITOR_SECAO']) ? `${firstValue(p, ['eleitores', 'QT_ELEITOR_SECAO'])} eleitores` : ''
+      ].filter(Boolean).join(' · ');
+      const index = Object.values(p).join(' ').toLowerCase();
+      searchable.push({ label, detail, index, element, feature, spec, center });
+    }
+
+    function renderFeature(feature, group, spec) {
+      const geom = feature.geometry || {};
+      const style = styleFor(spec);
+      let element = null;
+      let center = centerForFeature(feature);
+      if (geom.type === 'Point') {
+        const [cx, cy] = project(geom.coordinates);
+        center = [cx, cy];
+        element = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        element.setAttribute('class', 'point');
+        element.dataset.category = spec.category;
+        element.setAttribute('cx', cx);
+        element.setAttribute('cy', cy);
+        element.dataset.radius = pointRadius(feature, spec);
+        element.setAttribute('r', 0.002);
+        element.setAttribute('fill', style.fill);
+        element.setAttribute('stroke', style.stroke);
+        element.setAttribute('stroke-width', style.width);
+      } else {
+        const d = pathForGeometry(geom);
+        if (!d) return;
+        element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        element.setAttribute('class', 'feature-path');
+        element.setAttribute('d', d);
+        element.setAttribute('fill', style.fill);
+        element.setAttribute('stroke', style.stroke);
+        element.setAttribute('stroke-width', style.width);
+        element.setAttribute('stroke-linejoin', 'round');
+        element.setAttribute('stroke-linecap', 'round');
+      }
+      const item = { feature, spec, element, center };
+      element.addEventListener('click', event => {
+        event.stopPropagation();
+        showPopup(item);
+      });
+      if (geom.type === 'Point') {
+        element.addEventListener('pointerenter', event => showHoverTooltip(item, event));
+        element.addEventListener('pointermove', moveHoverTooltip);
+        element.addEventListener('pointerleave', hideHoverTooltip);
+      }
+      group.appendChild(element);
+      if (spec.category === 'polling') addPollingLabels(item);
+      addSearchable(feature, element, spec, center);
+    }
+
+    function focusItem(item) {
+      const group = layersByName.get(item.spec.name);
+      if (group) group.style.display = '';
+      showPopup(item);
+    }
+
+    function renderPollingLegend(query = '') {
+      const term = query.trim().toLowerCase();
+      const locations = searchable
+        .filter(item => item.spec.category === 'polling' && (!term || item.index.includes(term)))
+        .sort((a, b) => (Number(b.feature.properties?.eleitores) || 0) - (Number(a.feature.properties?.eleitores) || 0));
+      pollingLegend.innerHTML = '';
+      if (!locations.length) {
+        pollingLegend.innerHTML = '<div class="empty">Nenhum local encontrado.</div>';
+        return;
+      }
+      for (const item of locations) {
+        const p = item.feature.properties || {};
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'polling-item';
+        const size = Math.max(8, Math.min(28, pointRadius(item.feature, item.spec) * 1.35));
+        button.innerHTML = `<strong>${escapeHtml(firstValue(p, ['nome_local']))}</strong><span class="menu-symbol" style="--symbol-size:${size}px" aria-hidden="true"></span>`;
+        button.addEventListener('pointerenter', () => previewItem(item));
+        button.addEventListener('pointerleave', clearPreview);
+        button.addEventListener('focus', () => previewItem(item));
+        button.addEventListener('blur', clearPreview);
+        button.addEventListener('click', () => previewItem(item));
+        pollingLegend.append(button);
+      }
+    }
+
+    function updateMetrics(dataByName) {
+      const polling = dataByName.get('Locais de votacao') || { features: [] };
+      const sections = dataByName.get('Secoes eleitorais') || { features: [] };
+      const voters = polling.features.reduce((sum, feature) => sum + (Number(feature.properties.eleitores) || 0), 0);
+      document.getElementById('pollingTotal').textContent = polling.features.length.toLocaleString('pt-BR');
+      document.getElementById('sectionTotal').textContent = sections.features.length.toLocaleString('pt-BR');
+      document.getElementById('voterTotal').textContent = voters.toLocaleString('pt-BR');
+    }
+
+    function boot() {
+      const bundledLayers = window.CAJARI_MAP_DATA;
+      if (!Array.isArray(bundledLayers) || !bundledLayers.length) {
+        throw new Error('Dados do mapa indisponíveis. Execute a exportação novamente.');
+      }
+      const dataByName = new Map();
+      for (const { spec, data } of bundledLayers) {
+        dataByName.set(spec.name, data);
+        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        group.setAttribute('data-layer', spec.name);
+        group.style.display = defaultVisible.has(spec.name) ? '' : 'none';
+        layersByName.set(spec.name, group);
+        viewport.appendChild(group);
+        for (const feature of data.features) {
+          const bounds = featureBounds(feature);
+          if (Number.isFinite(bounds[0])) allBounds = mergeBounds(allBounds, bounds);
+          if (spec.name === 'Cajari') cajariBounds = mergeBounds(cajariBounds, bounds);
+          renderFeature(feature, group, spec);
+        }
+      }
+      // Match the QGIS drawing order: water first, roads above it, voting symbols on top.
+      [
+        'Cajari', "Massas d'agua", 'Rio Maracu', 'Rio Pindare',
+        'Estradas', 'BR-222', 'MA-014', 'MA-317',
+        'Secoes eleitorais', 'Locais de votacao (original)', 'Locais de votacao'
+      ].forEach(name => {
+        const group = layersByName.get(name);
+        if (group) viewport.appendChild(group);
+      });
+      updateMetrics(dataByName);
+      const copiedLocations = dataByName.get('Locais de votacao') || { features: [] };
+      copiedLocations.features.forEach(feature => {
+        const p = feature.properties || {};
+        localityFromCopy.set(clean(p.cod_local), clean(p.localidade));
+      });
+      refreshPollingLabels();
+      renderPollingLegend();
+      fit(cajariBounds || allBounds);
+    }
+
+    searchInput.addEventListener('input', event => renderPollingLegend(event.target.value));
+    document.getElementById('clearSearch').addEventListener('click', () => {
+      searchInput.value = '';
+      renderPollingLegend('');
+      searchInput.focus();
+    });
+    document.getElementById('fitMap').addEventListener('click', () => fit(cajariBounds || allBounds));
+    document.getElementById('fitMapTop').addEventListener('click', () => fit(cajariBounds || allBounds));
+    document.getElementById('zoomIn').addEventListener('click', () => zoomAt(1.55, svg.clientWidth / 2, svg.clientHeight / 2));
+    document.getElementById('zoomOut').addEventListener('click', () => zoomAt(1 / 1.55, svg.clientWidth / 2, svg.clientHeight / 2));
+    document.getElementById('opacity').addEventListener('input', event => {
+      viewport.style.opacity = Number(event.target.value) / 100;
+    });
+
+    svg.addEventListener('wheel', event => {
+      event.preventDefault();
+      zoomAt(event.deltaY < 0 ? 1.25 : 0.8, event.clientX, event.clientY);
+    }, { passive: false });
+
+    svg.addEventListener('pointerdown', event => {
+      dragging = { x: event.clientX, y: event.clientY, view: { ...view } };
+      mapWrap.classList.add('dragging');
+      svg.setPointerCapture(event.pointerId);
+      hidePopup();
+    });
+
+    svg.addEventListener('pointermove', event => {
+      if (!dragging) return;
+      const rect = svg.getBoundingClientRect();
+      const dx = (event.clientX - dragging.x) / rect.width * dragging.view.w;
+      const dy = (event.clientY - dragging.y) / rect.height * dragging.view.h;
+      view = { ...dragging.view, x: dragging.view.x - dx, y: dragging.view.y - dy };
+      applyView();
+    });
+
+    svg.addEventListener('pointerup', event => {
+      dragging = null;
+      mapWrap.classList.remove('dragging');
+      svg.releasePointerCapture(event.pointerId);
+    });
+
+    svg.addEventListener('click', hidePopup);
+    window.addEventListener('resize', () => fit(cajariBounds || allBounds));
+
+    try {
+      boot();
+    } catch (error) {
+      console.error(error);
+      pollingLegend.innerHTML = '<div class="empty">Não foi possível carregar os dados do mapa. Abra o arquivo map-data.js na mesma pasta e tente novamente.</div>';
+    }
+  </script>
+</body>
+</html>

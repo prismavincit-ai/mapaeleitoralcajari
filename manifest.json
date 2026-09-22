@@ -1,0 +1,134 @@
+[
+  {
+    "name": "Cajari",
+    "file": "data/cajari.geojson",
+    "category": "boundary",
+    "count": 1,
+    "bounds": [
+      -45.2717053,
+      -3.5724808,
+      -44.8620566,
+      -3.2393634
+    ]
+  },
+  {
+    "name": "BR-222",
+    "file": "data/br-222.geojson",
+    "category": "road",
+    "count": 1,
+    "bounds": [
+      -51.149588,
+      -5.4163349,
+      -38.5693106,
+      -3.331795
+    ]
+  },
+  {
+    "name": "MA-014",
+    "file": "data/ma-014.geojson",
+    "category": "road",
+    "count": 2,
+    "bounds": [
+      -44.9438299,
+      -3.4613425,
+      -44.8530891,
+      -3.2224886
+    ]
+  },
+  {
+    "name": "MA-317",
+    "file": "data/ma-317.geojson",
+    "category": "road",
+    "count": 1,
+    "bounds": [
+      -45.0080815,
+      -3.3189665,
+      -44.9016589,
+      -3.2759667
+    ]
+  },
+  {
+    "name": "Estradas",
+    "file": "data/estradas.geojson",
+    "category": "road",
+    "count": 167,
+    "bounds": [
+      -45.2848855,
+      -3.5933221,
+      -44.8530891,
+      -3.2224886
+    ]
+  },
+  {
+    "name": "Rio Maracu",
+    "file": "data/rio-maracu.geojson",
+    "category": "water",
+    "count": 1,
+    "bounds": [
+      -45.1842756,
+      -3.3382578,
+      -44.9860731,
+      -3.0939749
+    ]
+  },
+  {
+    "name": "Rio Pindare",
+    "file": "data/rio-pindare.geojson",
+    "category": "water",
+    "count": 1,
+    "bounds": [
+      -46.9558821,
+      -5.8837236,
+      -44.7908965,
+      -3.2480594
+    ]
+  },
+  {
+    "name": "Massas d'agua",
+    "file": "data/massas-d-agua.geojson",
+    "category": "water",
+    "count": 46,
+    "bounds": [
+      -45.2583635,
+      -3.5352093,
+      -44.8726627,
+      -3.2393634
+    ]
+  },
+  {
+    "name": "Locais de votacao",
+    "file": "data/locais-de-votacao.geojson",
+    "category": "polling",
+    "count": 25,
+    "bounds": [
+      -45.2528072,
+      -3.5456657,
+      -44.9242448,
+      -3.283182
+    ]
+  },
+  {
+    "name": "Locais de votacao (original)",
+    "file": "data/locais-de-votacao-original.geojson",
+    "category": "polling_alt",
+    "count": 25,
+    "bounds": [
+      -45.2528072,
+      -3.5456657,
+      -44.9242448,
+      -3.283182
+    ]
+  },
+  {
+    "name": "Secoes eleitorais",
+    "file": "data/secoes-eleitorais.geojson",
+    "category": "section",
+    "count": 63,
+    "bounds": [
+      -45.2528072,
+      -3.5456657,
+      -44.9242448,
+      -3.283182
+    ]
+  }
+]
