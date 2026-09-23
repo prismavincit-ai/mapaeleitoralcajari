@@ -136,6 +136,17 @@
       background: var(--accent);
     }
 
+    .data-footer {
+      margin-top: -7px;
+      padding-top: 10px;
+      border-top: 1px solid #d6e3db;
+      color: #63736d;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .data-footer strong { color: #31554b; font-weight: 650; }
+
     button:hover { border-color: var(--accent); }
 
     .legend {
@@ -617,6 +628,7 @@
       .popup th, .popup td { padding: 2px 0; }
       .popup th { width: 31%; padding-right: 6px; }
       .opacity-control { display: none; }
+      .data-footer { margin-top: -5px; padding-top: 7px; font-size: 8px; line-height: 1.4; }
     }
   </style>
 </head>
@@ -671,6 +683,10 @@
       </section>
 
       <button id="fitMap" type="button" class="primary">Ajustar ao município</button>
+      <footer class="data-footer">
+        <strong>Fontes:</strong> TSE/TRE-MA &middot; IBGE &middot; SIRGAS 2000 / UTM 23S<br>
+        <strong>Elaboração:</strong> Manoel Júnior
+      </footer>
     </aside>
     <main>
       <div id="mapWrap">
