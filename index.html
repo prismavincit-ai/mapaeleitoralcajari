@@ -79,15 +79,18 @@
     .summary {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fbfcfa;
     }
 
     .metric {
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fbfcfa;
+      min-width: 0;
+      padding: 11px 12px;
     }
+
+    .metric + .metric { border-left: 1px solid var(--line); }
 
     .metric strong {
       display: block;
@@ -511,8 +514,8 @@
     h1 { color: #133f36; font-size: 25px; }
     h2 { color: #173f37; }
     .intro-copy { margin-top: 9px; line-height: 1.55; }
-    .summary { gap: 10px; }
-    .metric { padding: 11px 9px; border-color: #d8e3db; background: #fff; }
+    .summary { gap: 0; border-color: #d8e3db; background: #fff; }
+    .metric { padding: 11px 9px; }
     .metric strong { color: #126b59; }
     .search input { border-color: #cfddd4; }
     .legend { padding: 12px; border: 1px solid #d8e5dd; border-radius: 12px; background: #fff; }
@@ -582,8 +585,8 @@
       aside h1 { font-size: 15px; }
       aside h2 { margin-bottom: 6px; font-size: 11px; }
       .intro-copy, .menu-help { font-size: 10px; line-height: 1.35; }
-      .summary { gap: 4px; }
-      .metric { min-width: 0; padding: 6px 3px; overflow: hidden; }
+      .summary { gap: 0; border-radius: 8px; }
+      .metric { min-width: 0; padding: 8px 3px; overflow: hidden; }
       .metric strong { font-size: 10px; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
       .metric span { margin-top: 2px; font-size: 8px; }
       .search { gap: 4px; }
