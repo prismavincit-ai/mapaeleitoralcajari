@@ -1034,6 +1034,43 @@
       });
     }
 
+    function addRiverLabels(dataByName) {
+      const padding = .025;
+      const bounds = [cajariBounds[0] - padding, cajariBounds[1] - padding, cajariBounds[2] + padding, cajariBounds[3] + padding];
+      const unitsPerPixel = view.w / Math.max(1, svg.clientWidth);
+      const labels = { 'Rio Maracu': 'Rio Maracu', 'Rio Pindare': 'Rio Pindaré' };
+
+      Object.entries(labels).forEach(([name, labelText]) => {
+        const data = dataByName.get(name);
+        if (!data) return;
+        const candidates = data.features.flatMap(feature => lineParts(feature.geometry).map(part => ({
+          part,
+          inside: part.map((point, index) => ({ point, index })).filter(({ point: [x, y] }) => x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3])
+        }))).filter(({ inside }) => inside.length > 2);
+        candidates.sort((a, b) => b.inside.length - a.inside.length);
+        const candidate = candidates[0];
+        if (!candidate) return;
+        const anchorIndex = candidate.inside[Math.floor(candidate.inside.length / 2)].index;
+        const before = candidate.part[Math.max(0, anchorIndex - 1)];
+        const anchor = candidate.part[anchorIndex];
+        const after = candidate.part[Math.min(candidate.part.length - 1, anchorIndex + 1)];
+        const [x, y] = project(anchor);
+        const [x1, y1] = project(before);
+        const [x2, y2] = project(after);
+        let angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        if (angle > 90 || angle < -90) angle += 180;
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('class', 'road-label');
+        label.setAttribute('x', x);
+        label.setAttribute('y', y);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('font-size', unitsPerPixel * 11);
+        label.setAttribute('transform', `rotate(${angle} ${x} ${y})`);
+        label.textContent = labelText;
+        labelLayer.appendChild(label);
+      });
+    }
+
     function pointRadius(feature, spec) {
       if (spec.category !== 'polling') return styleFor(spec).radius || 5;
       const voters = Number((feature.properties || {}).eleitores) || 0;
@@ -1344,6 +1381,7 @@
       renderPollingLegend();
       fitMunicipality();
       addRoadLabels(dataByName);
+      addRiverLabels(dataByName);
     }
 
     searchInput.addEventListener('input', event => renderPollingLegend(event.target.value));
