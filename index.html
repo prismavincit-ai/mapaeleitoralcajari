@@ -598,16 +598,16 @@
         box-shadow: none;
       }
       aside.is-open { transform: none; }
-      aside > section:first-child { padding: 10px; border-radius: 8px; }
+      aside > section:first-child { padding: 11px 10px; border-radius: 8px; text-align: center; }
       aside > section:first-child .eyebrow { display: none; }
-      aside h1 { font-size: 15px; }
+      aside h1 { font-size: 15px; text-align: center; }
       aside h2 { margin-bottom: 6px; font-size: 11px; }
       .intro-copy, .menu-help { font-size: 10px; line-height: 1.35; }
-      .summary { gap: 4px; }
-      .metric { min-width: 0; padding: 8px 3px 6px; overflow: hidden; }
+      .summary { gap: 5px; align-items: stretch; }
+      .metric { min-width: 0; min-height: 58px; display: grid; align-content: center; padding: 8px 2px 6px; overflow: hidden; text-align: center; }
       .metric::before { right: 5px; left: 5px; }
       .metric strong { font-size: 10px; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
-      .metric span { margin-top: 2px; font-size: 8px; }
+      .metric span { margin-top: 2px; font-size: 8px; text-align: center; }
       .search { position: relative; display: block; }
       /* Safari só amplia campos com texto abaixo de 16px ao receber foco. */
       input[type="search"] { height: 34px; padding: 0 30px 0 7px; font-size: 16px; }
@@ -784,7 +784,7 @@
 
     function updateSearchPlaceholder() {
       searchInput.placeholder = window.matchMedia('(max-width: 820px)').matches
-        ? 'Buscar local'
+        ? 'Buscar'
         : 'Nome, seção, código ou localidade';
     }
 
