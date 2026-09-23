@@ -1300,8 +1300,15 @@
         firstValue(p, ['secoes', 'NR_SECAO']) ? `Seção ${firstValue(p, ['secoes', 'NR_SECAO'])}` : '',
         firstValue(p, ['eleitores', 'QT_ELEITOR_SECAO']) ? `${firstValue(p, ['eleitores', 'QT_ELEITOR_SECAO'])} eleitores` : ''
       ].filter(Boolean).join(' · ');
-      const index = Object.values(p).join(' ').toLowerCase();
-      searchable.push({ label, detail, index, element, feature, spec, center });
+      const index = [
+        firstValue(p, ['nome_local', 'NM_LOCAL_VOTACAO']),
+        firstValue(p, ['localidade', 'NM_BAIRRO', 'DS_ENDERECO'])
+      ].join(' ').toLowerCase();
+      const numericTerms = [
+        firstValue(p, ['cod_local', 'NR_LOCAL_VOTACAO']),
+        ...clean(firstValue(p, ['secoes', 'NR_SECAO'])).split(/\D+/)
+      ].filter(Boolean);
+      searchable.push({ label, detail, index, numericTerms, element, feature, spec, center });
     }
 
     function renderFeature(feature, group, spec) {
@@ -1357,8 +1364,11 @@
 
     function renderPollingLegend(query = '') {
       const term = query.trim().toLowerCase();
+      const isNumericSearch = /^\d+$/.test(term);
       const locations = searchable
-        .filter(item => item.spec.category === 'polling' && (!term || item.index.includes(term)))
+        .filter(item => item.spec.category === 'polling' && (!term || (isNumericSearch
+          ? item.numericTerms.includes(term)
+          : item.index.includes(term))))
         .sort((a, b) => (Number(b.feature.properties?.eleitores) || 0) - (Number(a.feature.properties?.eleitores) || 0));
       pollingLegend.innerHTML = '';
       if (!locations.length) {
