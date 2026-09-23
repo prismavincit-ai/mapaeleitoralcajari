@@ -609,7 +609,8 @@
       .metric strong { font-size: 10px; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
       .metric span { margin-top: 2px; font-size: 8px; }
       .search { position: relative; display: block; }
-      input[type="search"] { height: 32px; padding: 0 30px 0 7px; font-size: 10px; }
+      /* Safari só amplia campos com texto abaixo de 16px ao receber foco. */
+      input[type="search"] { height: 34px; padding: 0 30px 0 7px; font-size: 16px; }
       .search button {
         position: absolute;
         top: 4px;
