@@ -388,11 +388,16 @@
       vector-effect: non-scaling-stroke;
       animation: selected-point-pulse 1.15s ease-in-out infinite;
     }
-    .point.is-preview {
-      stroke: #f4bf4f;
+    .point.is-preview { stroke: #f4bf4f; stroke-width: 3px; vector-effect: non-scaling-stroke; }
+    .selection-halo { fill: none; stroke: #f4bf4f; vector-effect: non-scaling-stroke; pointer-events: none; }
+    .road-label {
+      fill: #b65f38;
+      stroke: #fff;
+      stroke-linejoin: round;
       stroke-width: 3px;
-      vector-effect: non-scaling-stroke;
-      animation: selected-point-pulse 1.15s ease-in-out infinite;
+      paint-order: stroke;
+      pointer-events: none;
+      font-weight: 700;
     }
 
     @keyframes selected-point-pulse {
@@ -583,7 +588,6 @@
       input[type="search"], .search button { height: 30px; padding: 0 6px; font-size: 10px; }
       .legend { padding: 7px; border-radius: 7px; }
       .legend span, .symbol-scale { font-size: 9px; }
-      .roads-reference { grid-column: 1 / -1; }
       .symbol-scale { gap: 4px; }
       .polling-menu { max-height: calc(100vh - 365px); }
       .polling-item { min-height: 0; padding: 7px; gap: 5px; border-radius: 6px; }
@@ -659,7 +663,7 @@
         <h2>Referências</h2>
         <div class="legend">
           <span style="color: #6c6c6c"><i class="swatch"></i>Limite municipal</span>
-          <span class="roads-reference" style="color: #e07b48"><i class="swatch"></i>Rodovias: BR-222, MA-014 e MA-317</span>
+          <span style="color: #e07b48"><i class="swatch"></i>Vias de acesso</span>
           <span style="color: #73b9df"><i class="swatch"></i>Hidrografia</span>
           <span style="color: #b7484b"><i class="swatch point"></i>Local de votação</span>
         </div>
@@ -745,6 +749,7 @@
     let dragging = null;
     let selectedItem = null;
     let previewedItem = null;
+    let pulseHalo = null;
 
     function setSidebarOpen(open) {
       sidebar.classList.toggle('is-open', open);
@@ -817,6 +822,26 @@
         return geom.geometries.reduce((bounds, g) => coordBounds(g.coordinates, bounds), [Infinity, Infinity, -Infinity, -Infinity]);
       }
       return coordBounds(geom.coordinates);
+    }
+
+    function renderRoadLabels() {
+      const anchors = {
+        'BR-222': [-44.945, -3.365],
+        'MA-014': [-45.045, -3.385],
+        'MA-317': [-45.155, -3.445]
+      };
+      Object.entries(anchors).forEach(([name, anchor]) => {
+        const [x, y] = project(anchor);
+        const unitsPerPixel = view.w / Math.max(1, svg.clientWidth);
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('class', 'road-label');
+        label.setAttribute('x', x);
+        label.setAttribute('y', y - unitsPerPixel * 10);
+        label.setAttribute('font-size', unitsPerPixel * 12);
+        label.setAttribute('text-anchor', 'middle');
+        label.textContent = name;
+        labelLayer.appendChild(label);
+      });
     }
 
     function mergeBounds(a, b) {
@@ -1039,13 +1064,47 @@
       if (previewedItem?.element) previewedItem.element.classList.remove('is-preview');
       previewedItem = item;
       if (item.element) item.element.classList.add('is-preview');
+      showPulse(item);
       showHoverTooltipAtItem(item);
     }
 
     function clearPreview() {
       if (previewedItem?.element) previewedItem.element.classList.remove('is-preview');
       previewedItem = null;
+      if (!selectedItem) clearPulse();
       hideHoverTooltip();
+    }
+
+    function clearPulse() {
+      pulseHalo?.remove();
+      pulseHalo = null;
+    }
+
+    function showPulse(item) {
+      if (item.spec.category !== 'polling') return;
+      clearPulse();
+      const point = item.center || centerForFeature(item.feature);
+      const unitsPerPixel = view.w / Math.max(1, svg.clientWidth);
+      const baseRadius = Math.max(unitsPerPixel * Number(item.element?.dataset.radius || 6), unitsPerPixel * 4);
+      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      halo.setAttribute('class', 'selection-halo');
+      halo.setAttribute('cx', point[0]);
+      halo.setAttribute('cy', point[1]);
+      halo.setAttribute('r', baseRadius * 1.2);
+      halo.setAttribute('stroke-width', Math.max(unitsPerPixel * 2, .0002));
+      const radiusAnimation = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+      radiusAnimation.setAttribute('attributeName', 'r');
+      radiusAnimation.setAttribute('values', `${baseRadius * 1.15};${baseRadius * 2.15};${baseRadius * 1.15}`);
+      radiusAnimation.setAttribute('dur', '1.1s');
+      radiusAnimation.setAttribute('repeatCount', 'indefinite');
+      const opacityAnimation = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+      opacityAnimation.setAttribute('attributeName', 'opacity');
+      opacityAnimation.setAttribute('values', '1;0;1');
+      opacityAnimation.setAttribute('dur', '1.1s');
+      opacityAnimation.setAttribute('repeatCount', 'indefinite');
+      halo.append(radiusAnimation, opacityAnimation);
+      labelLayer.appendChild(halo);
+      pulseHalo = halo;
     }
 
     function centerOnItem(item) {
@@ -1068,6 +1127,7 @@
       if (selectedItem && selectedItem.element) selectedItem.element.classList.remove('is-selected');
       selectedItem = item;
       if (item.element && item.spec.category === 'polling') item.element.classList.add('is-selected');
+      showPulse(item);
       const rows = popupRows(item.feature, item.spec.name)
         .map(([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(value)}</td></tr>`)
         .join('');
@@ -1080,6 +1140,7 @@
     function hidePopup() {
       if (selectedItem && selectedItem.element) selectedItem.element.classList.remove('is-selected');
       selectedItem = null;
+      clearPulse();
       popup.classList.remove('is-open');
     }
 
@@ -1259,6 +1320,7 @@
       refreshPollingLabels();
       renderPollingLegend();
       fitMunicipality();
+      renderRoadLabels();
     }
 
     searchInput.addEventListener('input', event => renderPollingLegend(event.target.value));
