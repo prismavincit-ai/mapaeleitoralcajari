@@ -391,12 +391,9 @@
     .point.is-preview { stroke: #f4bf4f; stroke-width: 3px; vector-effect: non-scaling-stroke; }
     .selection-halo { fill: none; stroke: #f4bf4f; vector-effect: non-scaling-stroke; pointer-events: none; }
     .road-label {
-      fill: #b65f38;
-      stroke: #fff;
-      stroke-linejoin: round;
-      paint-order: stroke;
+      fill: #232323;
       pointer-events: none;
-      font-weight: 700;
+      font-weight: 500;
     }
 
     @keyframes selected-point-pulse {
@@ -703,7 +700,7 @@
   <script>
     const categoryStyle = {
       boundary: { stroke: '#6c6c6c', width: 1, fill: '#faf7ea' },
-      road: { stroke: '#e07b48', width: 1.1, fill: 'none' },
+      road: { stroke: '#e29261', width: 1.1, fill: 'none' },
       water: { stroke: '#9bcde5', width: 1, fill: '#cdeafa' },
       polling: { stroke: 'none', width: 0, fill: '#b7484b', radius: 7 },
       polling_alt: { stroke: '#ffffff', width: 1, fill: 'rgba(179,38,30,.35)', radius: 4 },
@@ -902,9 +899,10 @@
     function styleFor(spec) {
       const base = { ...(categoryStyle[spec.category] || categoryStyle.road) };
       if (spec.name === 'Cajari') return { ...base, stroke: '#6c6c6c', width: 1, fill: '#faf7ea' };
-      if (spec.name === 'BR-222') return { ...base, width: 1.5, stroke: '#cd4e4a' };
-      if (spec.name === 'MA-014') return { ...base, width: 1.4, stroke: '#e47747' };
-      if (spec.name === 'MA-317') return { ...base, width: 1.4, stroke: '#cf4e48' };
+      // Match the restrained coral road palette visible in the QGIS canvas.
+      if (spec.name === 'BR-222') return { ...base, width: 1.25, stroke: '#d48678' };
+      if (spec.name === 'MA-014') return { ...base, width: 1.15, stroke: '#df8a69' };
+      if (spec.name === 'MA-317') return { ...base, width: 1.15, stroke: '#cc8266' };
       if (spec.name === 'Rio Maracu' || spec.name === 'Rio Pindare') return { ...base, width: 1.5, stroke: '#73b9df', fill: 'none' };
       if (spec.name === "Massas d'agua") return { ...base, width: .8, stroke: '#a9d3e8', fill: '#cdeafa' };
       return base;
