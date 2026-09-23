@@ -390,6 +390,14 @@
     }
     .point.is-preview { stroke: #f4bf4f; stroke-width: 3px; vector-effect: non-scaling-stroke; }
     .selection-halo { fill: none; stroke: #f4bf4f; vector-effect: non-scaling-stroke; pointer-events: none; }
+    .road-label {
+      fill: #b65f38;
+      stroke: #fff;
+      stroke-linejoin: round;
+      paint-order: stroke;
+      pointer-events: none;
+      font-weight: 700;
+    }
 
     @keyframes selected-point-pulse {
       0%, 100% { opacity: 1; stroke-width: 3px; }
@@ -982,6 +990,27 @@
       });
     }
 
+    function addRoadLabels() {
+      const anchors = [
+        { name: 'BR-222', coordinate: [-44.945, -3.365] },
+        { name: 'MA-014', coordinate: [-45.045, -3.385] },
+        { name: 'MA-317', coordinate: [-45.155, -3.445] }
+      ];
+      const unitsPerPixel = view.w / Math.max(1, svg.clientWidth);
+      anchors.forEach(({ name, coordinate }) => {
+        const [x, y] = project(coordinate);
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('class', 'road-label');
+        label.setAttribute('x', x);
+        label.setAttribute('y', y);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('font-size', unitsPerPixel * 11);
+        label.setAttribute('stroke-width', unitsPerPixel * 3.5);
+        label.textContent = name;
+        labelLayer.appendChild(label);
+      });
+    }
+
     function pointRadius(feature, spec) {
       if (spec.category !== 'polling') return styleFor(spec).radius || 5;
       const voters = Number((feature.properties || {}).eleitores) || 0;
@@ -1291,6 +1320,7 @@
       refreshPollingLabels();
       renderPollingLegend();
       fitMunicipality();
+      addRoadLabels();
     }
 
     searchInput.addEventListener('input', event => renderPollingLegend(event.target.value));
