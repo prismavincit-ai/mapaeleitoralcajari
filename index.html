@@ -388,7 +388,12 @@
       vector-effect: non-scaling-stroke;
       animation: selected-point-pulse 1.15s ease-in-out infinite;
     }
-    .point.is-preview { stroke: #fff; stroke-width: 2px; }
+    .point.is-preview {
+      stroke: #f4bf4f;
+      stroke-width: 3px;
+      vector-effect: non-scaling-stroke;
+      animation: selected-point-pulse 1.15s ease-in-out infinite;
+    }
 
     @keyframes selected-point-pulse {
       0%, 100% { opacity: 1; stroke-width: 3px; }
@@ -578,6 +583,7 @@
       input[type="search"], .search button { height: 30px; padding: 0 6px; font-size: 10px; }
       .legend { padding: 7px; border-radius: 7px; }
       .legend span, .symbol-scale { font-size: 9px; }
+      .roads-reference { grid-column: 1 / -1; }
       .symbol-scale { gap: 4px; }
       .polling-menu { max-height: calc(100vh - 365px); }
       .polling-item { min-height: 0; padding: 7px; gap: 5px; border-radius: 6px; }
@@ -653,7 +659,7 @@
         <h2>Referências</h2>
         <div class="legend">
           <span style="color: #6c6c6c"><i class="swatch"></i>Limite municipal</span>
-          <span style="color: #e07b48"><i class="swatch"></i>Vias de acesso</span>
+          <span class="roads-reference" style="color: #e07b48"><i class="swatch"></i>Rodovias: BR-222, MA-014 e MA-317</span>
           <span style="color: #73b9df"><i class="swatch"></i>Hidrografia</span>
           <span style="color: #b7484b"><i class="swatch point"></i>Local de votação</span>
         </div>
