@@ -79,18 +79,32 @@
     .summary {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      background: #fbfcfa;
+      gap: 8px;
     }
 
     .metric {
       min-width: 0;
-      padding: 11px 12px;
+      position: relative;
+      padding: 12px 11px 10px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(26, 63, 53, .05);
     }
 
-    .metric + .metric { border-left: 1px solid var(--line); }
+    .metric::before {
+      position: absolute;
+      top: 0;
+      right: 9px;
+      left: 9px;
+      height: 2px;
+      content: '';
+      background: #147865;
+    }
+
+    .metric:nth-child(2)::before { background: #4d88a8; }
+    .metric:nth-child(3)::before { background: #c46b4c; }
 
     .metric strong {
       display: block;
@@ -109,6 +123,8 @@
       display: flex;
       gap: 8px;
     }
+
+    .clear-icon { display: none; }
 
     input[type="search"] {
       width: 100%;
@@ -514,9 +530,11 @@
     h1 { color: #133f36; font-size: 25px; }
     h2 { color: #173f37; }
     .intro-copy { margin-top: 9px; line-height: 1.55; }
-    .summary { gap: 0; border-color: #d8e3db; background: #fff; }
-    .metric { padding: 11px 9px; }
+    .summary { gap: 10px; }
+    .metric { padding: 12px 9px 10px; border-color: #d8e3db; }
     .metric strong { color: #126b59; }
+    .metric:nth-child(2) strong { color: #397694; }
+    .metric:nth-child(3) strong { color: #a9573d; }
     .search input { border-color: #cfddd4; }
     .legend { padding: 12px; border: 1px solid #d8e5dd; border-radius: 12px; background: #fff; }
     .polling-menu { max-height: 39vh; }
@@ -585,12 +603,29 @@
       aside h1 { font-size: 15px; }
       aside h2 { margin-bottom: 6px; font-size: 11px; }
       .intro-copy, .menu-help { font-size: 10px; line-height: 1.35; }
-      .summary { gap: 0; border-radius: 8px; }
-      .metric { min-width: 0; padding: 8px 3px; overflow: hidden; }
+      .summary { gap: 4px; }
+      .metric { min-width: 0; padding: 8px 3px 6px; overflow: hidden; }
+      .metric::before { right: 5px; left: 5px; }
       .metric strong { font-size: 10px; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
       .metric span { margin-top: 2px; font-size: 8px; }
-      .search { gap: 4px; }
-      input[type="search"], .search button { height: 30px; padding: 0 6px; font-size: 10px; }
+      .search { position: relative; display: block; }
+      input[type="search"] { height: 32px; padding: 0 30px 0 7px; font-size: 10px; }
+      .search button {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 0;
+        border-radius: 6px;
+        color: #547269;
+        background: #edf5f0;
+        font-size: 17px;
+        line-height: 1;
+      }
+      .clear-label { display: none; }
+      .clear-icon { display: inline; }
       .legend { grid-template-columns: minmax(0, 1fr); gap: 5px; padding: 7px; border-radius: 7px; }
       .legend span, .symbol-scale { font-size: 9px; }
       .legend span { gap: 7px; white-space: nowrap; }
@@ -662,7 +697,7 @@
         <h2>Buscar local ou seção</h2>
         <div class="search">
           <input id="searchInput" type="search" placeholder="Nome, seção, código ou localidade" autocomplete="off">
-          <button id="clearSearch" type="button">Limpar</button>
+          <button id="clearSearch" type="button" aria-label="Limpar busca" title="Limpar busca"><span class="clear-label">Limpar</span><span class="clear-icon" aria-hidden="true">&times;</span></button>
         </div>
       </section>
 
@@ -745,6 +780,12 @@
     const scaleInfo = document.getElementById('scaleInfo');
     const sidebar = document.querySelector('aside');
     const sidebarToggle = document.getElementById('sidebarToggle');
+
+    function updateSearchPlaceholder() {
+      searchInput.placeholder = window.matchMedia('(max-width: 820px)').matches
+        ? 'Buscar local'
+        : 'Nome, seção, código ou localidade';
+    }
 
     const layersByName = new Map();
     const searchable = [];
@@ -1439,9 +1480,13 @@
     });
 
     svg.addEventListener('click', hidePopup);
-    window.addEventListener('resize', fitMunicipality);
+    window.addEventListener('resize', () => {
+      updateSearchPlaceholder();
+      fitMunicipality();
+    });
 
     try {
+      updateSearchPlaceholder();
       boot();
     } catch (error) {
       console.error(error);
