@@ -583,13 +583,14 @@
       aside h2 { margin-bottom: 6px; font-size: 11px; }
       .intro-copy, .menu-help { font-size: 10px; line-height: 1.35; }
       .summary { gap: 4px; }
-      .metric { min-width: 0; padding: 6px 4px; overflow: hidden; }
-      .metric strong { font-size: 11px; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .metric { min-width: 0; padding: 6px 3px; overflow: hidden; }
+      .metric strong { font-size: 10px; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
       .metric span { margin-top: 2px; font-size: 8px; }
       .search { gap: 4px; }
       input[type="search"], .search button { height: 30px; padding: 0 6px; font-size: 10px; }
-      .legend { padding: 7px; border-radius: 7px; }
+      .legend { grid-template-columns: minmax(0, 1fr); gap: 5px; padding: 7px; border-radius: 7px; }
       .legend span, .symbol-scale { font-size: 9px; }
+      .legend span { gap: 7px; white-space: nowrap; }
       .symbol-scale { gap: 4px; }
       .polling-menu { max-height: calc(100vh - 365px); }
       .polling-item { min-height: 0; padding: 7px; gap: 5px; border-radius: 6px; }
