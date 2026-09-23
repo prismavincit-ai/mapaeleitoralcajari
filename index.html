@@ -1373,7 +1373,7 @@
       pollingLegend.innerHTML = '';
       if (!locations.length) {
         pollingLegend.innerHTML = '<div class="empty">Nenhum local encontrado.</div>';
-        return;
+        return locations;
       }
       for (const item of locations) {
         const p = item.feature.properties || {};
@@ -1394,6 +1394,7 @@
         });
         pollingLegend.append(button);
       }
+      return locations;
     }
 
     function updateMetrics(dataByName) {
@@ -1447,10 +1448,20 @@
       addRiverLabels(dataByName);
     }
 
-    searchInput.addEventListener('input', event => renderPollingLegend(event.target.value));
+    searchInput.addEventListener('input', event => {
+      const locations = renderPollingLegend(event.target.value);
+      if (locations.length === 1) {
+        const [item] = locations;
+        if (window.matchMedia('(max-width: 820px)').matches) centerOnItem(item);
+        showPopup(item);
+      } else {
+        hidePopup();
+      }
+    });
     document.getElementById('clearSearch').addEventListener('click', () => {
       searchInput.value = '';
       renderPollingLegend('');
+      hidePopup();
       searchInput.focus();
     });
     document.getElementById('fitMap').addEventListener('click', fitMunicipality);
