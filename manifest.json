@@ -12,18 +12,6 @@
     ]
   },
   {
-    "name": "Municipios limitrofes",
-    "file": "data/municipios-limitrofes.geojson",
-    "category": "context",
-    "count": 6,
-    "bounds": [
-      -45.5801918,
-      -3.8390236,
-      -44.5940652,
-      -2.9204957
-    ]
-  },
-  {
     "name": "BR-222",
     "file": "data/br-222.geojson",
     "category": "road",

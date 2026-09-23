@@ -191,13 +191,6 @@
       background: currentColor;
     }
 
-    .swatch.area {
-      width: 12px;
-      height: 12px;
-      border: 1px solid currentColor;
-      border-radius: 2px;
-    }
-
     .swatch.point {
       width: 11px;
       height: 11px;
@@ -712,7 +705,6 @@
       <section>
         <h2>Referências</h2>
         <div class="legend">
-          <span style="color: #aabdb3"><i class="swatch area"></i>Municípios limítrofes</span>
           <span style="color: #6c6c6c"><i class="swatch"></i>Limite municipal</span>
           <span style="color: #e07b48"><i class="swatch"></i>Vias de acesso</span>
           <span style="color: #73b9df"><i class="swatch"></i>Hidrografia</span>
@@ -759,7 +751,6 @@
   <script>
     const categoryStyle = {
       boundary: { stroke: '#6c6c6c', width: 1, fill: '#faf7ea' },
-      context: { stroke: '#aabdb3', width: .7, fill: '#e9f0eb' },
       road: { stroke: '#e29261', width: .7, fill: 'none' },
       water: { stroke: '#9bcde5', width: 1, fill: '#cdeafa' },
       polling: { stroke: 'none', width: 0, fill: '#b7484b', radius: 7 },
@@ -768,7 +759,6 @@
     };
 
     const defaultVisible = new Set([
-      'Municipios limitrofes',
       'Cajari',
       'BR-222',
       'MA-014',
@@ -965,7 +955,6 @@
 
     function styleFor(spec) {
       const base = { ...(categoryStyle[spec.category] || categoryStyle.road) };
-      if (spec.name === 'Municipios limitrofes') return { ...base, stroke: '#aabdb3', width: .7, fill: '#e9f0eb' };
       if (spec.name === 'Cajari') return { ...base, stroke: '#6c6c6c', width: 1, fill: '#faf7ea' };
       // Match the restrained coral road palette visible in the QGIS canvas.
       if (spec.name === 'BR-222') return { ...base, width: .9, stroke: '#d48678' };
@@ -1440,7 +1429,7 @@
       }
       // Match the QGIS drawing order: water first, roads above it, voting symbols on top.
       [
-        'Municipios limitrofes', 'Cajari', "Massas d'agua", 'Rio Maracu', 'Rio Pindare',
+        'Cajari', "Massas d'agua", 'Rio Maracu', 'Rio Pindare',
         'Estradas', 'BR-222', 'MA-014', 'MA-317',
         'Secoes eleitorais', 'Locais de votacao (original)', 'Locais de votacao'
       ].forEach(name => {
