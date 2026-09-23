@@ -390,15 +390,6 @@
     }
     .point.is-preview { stroke: #f4bf4f; stroke-width: 3px; vector-effect: non-scaling-stroke; }
     .selection-halo { fill: none; stroke: #f4bf4f; vector-effect: non-scaling-stroke; pointer-events: none; }
-    .road-label {
-      fill: #b65f38;
-      stroke: #fff;
-      stroke-linejoin: round;
-      stroke-width: 3px;
-      paint-order: stroke;
-      pointer-events: none;
-      font-weight: 700;
-    }
 
     @keyframes selected-point-pulse {
       0%, 100% { opacity: 1; stroke-width: 3px; }
@@ -822,26 +813,6 @@
         return geom.geometries.reduce((bounds, g) => coordBounds(g.coordinates, bounds), [Infinity, Infinity, -Infinity, -Infinity]);
       }
       return coordBounds(geom.coordinates);
-    }
-
-    function renderRoadLabels() {
-      const anchors = {
-        'BR-222': [-44.945, -3.365],
-        'MA-014': [-45.045, -3.385],
-        'MA-317': [-45.155, -3.445]
-      };
-      Object.entries(anchors).forEach(([name, anchor]) => {
-        const [x, y] = project(anchor);
-        const unitsPerPixel = view.w / Math.max(1, svg.clientWidth);
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('class', 'road-label');
-        label.setAttribute('x', x);
-        label.setAttribute('y', y - unitsPerPixel * 10);
-        label.setAttribute('font-size', unitsPerPixel * 12);
-        label.setAttribute('text-anchor', 'middle');
-        label.textContent = name;
-        labelLayer.appendChild(label);
-      });
     }
 
     function mergeBounds(a, b) {
@@ -1320,7 +1291,6 @@
       refreshPollingLabels();
       renderPollingLegend();
       fitMunicipality();
-      renderRoadLabels();
     }
 
     searchInput.addEventListener('input', event => renderPollingLegend(event.target.value));
