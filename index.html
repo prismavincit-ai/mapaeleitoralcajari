@@ -381,7 +381,12 @@
       cursor: pointer;
     }
 
-    .point.is-selected { fill: #ff0000 !important; }
+    .point.is-selected {
+      fill: #d92d32 !important;
+      stroke: #fff !important;
+      stroke-width: 2.5px !important;
+      vector-effect: non-scaling-stroke;
+    }
     .point.is-preview { stroke: #fff; stroke-width: 2px; }
 
     .map-label {
@@ -1026,6 +1031,22 @@
       hideHoverTooltip();
     }
 
+    function centerOnItem(item) {
+      const point = item.center || centerForFeature(item.feature);
+      view = { ...view, x: point[0] - view.w / 2, y: point[1] - view.h / 2 };
+      applyView();
+    }
+
+    function activatePollingItem(item) {
+      if (window.matchMedia('(max-width: 820px)').matches) {
+        clearPreview();
+        centerOnItem(item);
+        showPopup(item);
+      } else {
+        previewItem(item);
+      }
+    }
+
     function showPopup(item) {
       if (selectedItem && selectedItem.element) selectedItem.element.classList.remove('is-selected');
       selectedItem = item;
@@ -1164,12 +1185,11 @@
         button.addEventListener('pointerleave', clearPreview);
         button.addEventListener('focus', () => previewItem(item));
         button.addEventListener('blur', clearPreview);
-        button.addEventListener('click', () => {
-          if (window.matchMedia('(max-width: 820px)').matches) {
-            showPopup(item);
-          } else {
-            previewItem(item);
-          }
+        button.addEventListener('click', () => activatePollingItem(item));
+        button.addEventListener('pointerup', event => {
+          if (event.pointerType !== 'touch') return;
+          event.preventDefault();
+          activatePollingItem(item);
         });
         pollingLegend.append(button);
       }
