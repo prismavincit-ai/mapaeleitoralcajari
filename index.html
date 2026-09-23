@@ -1005,7 +1005,7 @@
           part,
           name: firstValue(feature.properties || {}, ['ref']) || name
         }))).filter(({ part }) => part.some(([x, y]) => x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3]));
-        candidates.sort((a, b) => b.part.length - a.part.length).slice(0, name === 'BR-222' ? 2 : 1).forEach(({ part, name: labelText }) => {
+        candidates.sort((a, b) => b.part.length - a.part.length).slice(0, 1).forEach(({ part, name: labelText }) => {
           const index = Math.floor(part.length / 2);
           const before = part[Math.max(0, index - 1)];
           const anchor = part[index];
