@@ -990,24 +990,44 @@
       });
     }
 
-    function addRoadLabels() {
-      const anchors = [
-        { name: 'BR-222', coordinate: [-44.945, -3.365] },
-        { name: 'MA-014', coordinate: [-45.045, -3.385] },
-        { name: 'MA-317', coordinate: [-45.155, -3.445] }
-      ];
+    function lineParts(geometry) {
+      if (geometry?.type === 'LineString') return [geometry.coordinates];
+      if (geometry?.type === 'MultiLineString') return geometry.coordinates;
+      return [];
+    }
+
+    function addRoadLabels(dataByName) {
+      const padding = .07;
+      const bounds = [cajariBounds[0] - padding, cajariBounds[1] - padding, cajariBounds[2] + padding, cajariBounds[3] + padding];
       const unitsPerPixel = view.w / Math.max(1, svg.clientWidth);
-      anchors.forEach(({ name, coordinate }) => {
-        const [x, y] = project(coordinate);
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('class', 'road-label');
-        label.setAttribute('x', x);
-        label.setAttribute('y', y);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('font-size', unitsPerPixel * 15);
-        label.setAttribute('stroke-width', unitsPerPixel * 5);
-        label.textContent = name;
-        labelLayer.appendChild(label);
+      ['BR-222', 'MA-014', 'MA-317'].forEach(name => {
+        const data = dataByName.get(name);
+        if (!data) return;
+        const candidates = data.features.flatMap(feature => lineParts(feature.geometry).map(part => ({
+          part,
+          name: firstValue(feature.properties || {}, ['ref']) || name
+        }))).filter(({ part }) => part.some(([x, y]) => x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3]));
+        candidates.sort((a, b) => b.part.length - a.part.length).slice(0, name === 'BR-222' ? 2 : 1).forEach(({ part, name: labelText }) => {
+          const index = Math.floor(part.length / 2);
+          const before = part[Math.max(0, index - 1)];
+          const anchor = part[index];
+          const after = part[Math.min(part.length - 1, index + 1)];
+          const [x, y] = project(anchor);
+          const [x1, y1] = project(before);
+          const [x2, y2] = project(after);
+          let angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+          if (angle > 90 || angle < -90) angle += 180;
+          const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          label.setAttribute('class', 'road-label');
+          label.setAttribute('x', x);
+          label.setAttribute('y', y);
+          label.setAttribute('text-anchor', 'middle');
+          label.setAttribute('font-size', unitsPerPixel * 12);
+          label.setAttribute('stroke-width', unitsPerPixel * 3.5);
+          label.setAttribute('transform', `rotate(${angle} ${x} ${y})`);
+          label.textContent = labelText;
+          labelLayer.appendChild(label);
+        });
       });
     }
 
@@ -1320,7 +1340,7 @@
       refreshPollingLabels();
       renderPollingLegend();
       fitMunicipality();
-      addRoadLabels();
+      addRoadLabels(dataByName);
     }
 
     searchInput.addEventListener('input', event => renderPollingLegend(event.target.value));
