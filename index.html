@@ -731,6 +731,7 @@
     <main>
       <div id="mapWrap">
         <svg id="mapSvg" role="img" aria-label="Mapa de Cajari com camadas eleitorais">
+          <defs><clipPath id="cajariClip"></clipPath></defs>
           <g id="viewport"></g>
           <g id="labelLayer"></g>
         </svg>
@@ -1049,6 +1050,31 @@
       if (geometry?.type === 'LineString') return [geometry.coordinates];
       if (geometry?.type === 'MultiLineString') return geometry.coordinates;
       return [];
+    }
+
+    function fadeRiversOutsideMunicipality(dataByName) {
+      const clip = document.getElementById('cajariClip');
+      const cajari = dataByName.get('Cajari');
+      if (!clip || !cajari) return;
+      clip.replaceChildren();
+      cajari.features.forEach(feature => {
+        const boundary = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        boundary.setAttribute('d', pathForGeometry(feature.geometry));
+        clip.appendChild(boundary);
+      });
+
+      ['Rio Maracu', 'Rio Pindare'].forEach(name => {
+        const group = layersByName.get(name);
+        if (!group) return;
+        [...group.querySelectorAll('path')].forEach(path => {
+          path.setAttribute('opacity', '.28');
+          const insideMunicipality = path.cloneNode(false);
+          insideMunicipality.setAttribute('clip-path', 'url(#cajariClip)');
+          insideMunicipality.setAttribute('opacity', '1');
+          insideMunicipality.setAttribute('pointer-events', 'none');
+          group.appendChild(insideMunicipality);
+        });
+      });
     }
 
     function addRoadLabels(dataByName) {
@@ -1436,6 +1462,7 @@
         const group = layersByName.get(name);
         if (group) viewport.appendChild(group);
       });
+      fadeRiversOutsideMunicipality(dataByName);
       updateMetrics(dataByName);
       const copiedLocations = dataByName.get('Locais de votacao') || { features: [] };
       copiedLocations.features.forEach(feature => {
